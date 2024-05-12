@@ -3,6 +3,7 @@ import { RentsController } from './rents.controller';
 import { RentsService } from './rents.service';
 import { DataSource } from 'typeorm';
 import { RentStatus } from './rent.entity';
+import { JwtService } from '@nestjs/jwt';
 
 describe('RentsController', () => {
   let controller: RentsController;
@@ -12,6 +13,7 @@ describe('RentsController', () => {
       controllers: [RentsController],
       providers: [
         RentsService,
+        JwtService,
         {
           provide: 'RentRepository',
           useValue: {},
