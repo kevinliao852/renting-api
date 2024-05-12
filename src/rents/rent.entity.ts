@@ -27,7 +27,9 @@ export class Rent {
   @Column()
   startTime: Date;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   endTime: Date;
 
   @Column()

@@ -19,13 +19,19 @@ export class AuthController {
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
 
-  @Post('signup') signup() {}
+  @Post('signup') signup() {
+    // TODO: Implement signup
+  }
 
   @UseGuards(AuthGuard)
   @Post('logout')
-  logout() {}
+  logout() {
+    // TODO: Implement logout
+  }
 
   @UseGuards(AuthGuard)
   @Post('token')
-  token() {}
+  token() {
+    // TODO: Implement token
+  }
 }

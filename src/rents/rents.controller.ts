@@ -1,32 +1,16 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Post,
-  UnprocessableEntityException,
-} from '@nestjs/common';
-import { scooters } from '../scooters/scooters.controller';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { RentsService } from './rents.service';
 
 @Controller('rents')
 export class RentsController {
-  constructor() {}
+  constructor(private readonly rentsService: RentsService) {}
 
   @HttpCode(HttpStatus.CREATED)
   @Post('')
-  creatRent(@Body() createRedntDto: Record<string, any>) {
-    const scooterIndex = scooters.findIndex(
-      ({ scooterId }) => scooterId === createRedntDto.scooterId,
-    ) as number | undefined;
-
-    if (scooterIndex === undefined) {
-      throw new UnprocessableEntityException('Scooter not found');
-    }
-
-    scooters[scooterIndex].status = 'Rented';
-
-    return {
-      rent_id: 1,
-    };
+  createRent(@Body() createRentDto: Record<string, any>) {
+    return this.rentsService.createRent({
+      scooterId: createRentDto.scooterId,
+      userId: createRentDto.userId,
+    });
   }
 }

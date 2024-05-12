@@ -42,33 +42,4 @@ export class RentsService {
       return await manager.save(rent);
     });
   }
-
-  async finishRent(rentId: number) {
-    return await this.dataSource.transaction(async (manager) => {
-      const rent = await this.rentsRepository.findOne({
-        where: {
-          rentId,
-          rentalStatus: RentStatus.OnGoing,
-        },
-      });
-
-      if (!rent) {
-        throw new Error('Rent not found');
-      }
-
-      rent.rentalStatus = RentStatus.Finished;
-      rent.endTime = new Date();
-
-      const scooter = await this.scootersRepository.findOne({
-        where: {
-          scooterId: rent.scooterId,
-        },
-      });
-
-      scooter.status = ScooterStatus.Available;
-
-      await manager.save(scooter);
-      return await manager.save(rent);
-    });
-  }
 }

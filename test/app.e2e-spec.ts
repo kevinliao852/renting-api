@@ -3,27 +3,16 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { DataSource } from 'typeorm';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../src/users/user.entity';
 import { Scooter, ScooterStatus } from '../src/scooters/scooter.entity';
-
-const typeormConfig = {
-  type: process.env.DB_DIALECT as any,
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  entities: [User, Scooter],
-  synchronize: true,
-};
+import { AuthService } from '../src/auth/auth.service';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, TypeOrmModule.forRoot(typeormConfig)],
+      imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -47,7 +36,7 @@ describe('Renting flow (e2e)', () => {
 
   beforeEach(async () => {
     const builder = Test.createTestingModule({
-      imports: [AppModule, TypeOrmModule.forRoot(typeormConfig)],
+      imports: [AppModule],
     });
 
     const moduleFixture: TestingModule = await builder.compile();
@@ -60,12 +49,15 @@ describe('Renting flow (e2e)', () => {
     await dataSource.query(
       'TRUNCATE TABLE public.scooter RESTART IDENTITY CASCADE',
     );
+    await dataSource.query(
+      'TRUNCATE TABLE public.rent RESTART IDENTITY CASCADE',
+    );
 
     const u = new User();
     u.lastName = 'Doe';
     u.firstName = 'John';
     u.username = 'johndoe';
-    u.password = 'password';
+    u.password = await AuthService.hashPassword('password');
     u.isActive = true;
 
     await dataSource.manager.save(u);
@@ -117,23 +109,24 @@ describe('Renting flow (e2e)', () => {
   });
 
   it('/rents POST rent a scooter', async () => {
-    return await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/rents')
       .send({
         scooterId: scooter.scooterId,
+        userId: 1,
       })
       .expect(201)
-      .then((response) => {
-        expect(response.body).toHaveProperty('rent_id');
+      .then(async (response) => {
+        expect(response.body).toHaveProperty('rentId');
+        return response.body;
       });
-  });
 
-  it('/scooters GET retrieve currently available scooters again', async () => {
-    await request(app.getHttpServer())
+    return await request(app.getHttpServer())
       .get('/scooters?status=Available')
       .expect(200)
       .then((response) => {
-        expect(response.body).toHaveLength(2);
+        expect(response.body).toHaveLength(1);
+        return response.body;
       });
   });
 });
