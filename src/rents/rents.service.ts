@@ -17,13 +17,14 @@ export class RentsService {
 
   async createRent(rentData: { scooterId: number; userId: number }) {
     return await this.dataSource.transaction(async (manager) => {
-      // TODO: Add Pesimiistic Locking here
-      const scooters = await this.scootersRepository.find({
-        where: {
+      const scooters = await manager
+        .getRepository(Scooter)
+        .createQueryBuilder('scooter')
+        .setLock('pessimistic_write')
+        .where('scooter.scooterId = :scooterId', {
           scooterId: rentData.scooterId,
-          status: ScooterStatus.Available,
-        },
-      });
+        })
+        .getMany();
 
       const scooter = scooters[0];
 
