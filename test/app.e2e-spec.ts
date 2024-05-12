@@ -96,6 +96,22 @@ describe('Renting flow (e2e)', () => {
   });
 
   let scooter: { scooterId: string; status: 'Available' };
+  let accesstoken: string;
+
+  it('/auth/login POST login', async () => {
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        username: 'johndoe',
+        password: 'password',
+      })
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toHaveProperty('access_token');
+        accesstoken = response.body.access_token;
+        return response.body;
+      });
+  });
 
   it('/scooters GET retrieve currently available scooters', async () => {
     return request(app.getHttpServer())
@@ -111,6 +127,7 @@ describe('Renting flow (e2e)', () => {
   it('/rents POST rent a scooter', async () => {
     await request(app.getHttpServer())
       .post('/rents')
+      .set('Authorization', `Bearer ${accesstoken}`)
       .send({
         scooterId: scooter.scooterId,
         userId: 1,

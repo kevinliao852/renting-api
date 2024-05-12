@@ -17,6 +17,7 @@ export class RentsService {
 
   async createRent(rentData: { scooterId: number; userId: number }) {
     return await this.dataSource.transaction(async (manager) => {
+      // TODO: Add Pesimiistic Locking here
       const scooters = await this.scootersRepository.find({
         where: {
           scooterId: rentData.scooterId,
